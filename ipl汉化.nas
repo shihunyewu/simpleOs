@@ -1,11 +1,10 @@
 ;hello-os
 ;TAB= 4
 ;以下这段是标准FAT12格式软盘专用的代码
+
 ORG	0x7c00				;指明程序的装载地址
 JMP	entry				;跳转到entry
-
 DB	0x90
-
 DB "HELLOIPL"			;启动区的名称可以是任意的字符串，但是只能是8字节
 DB 512					
 ;每个扇区的大小必须为 512
@@ -19,6 +18,7 @@ DB  0xf0				;磁盘的种类
 DW	9					;FAT的长度，必须是9扇区
 DW	18					;一个磁道有18个扇区
 DW	2					;磁头数
+DD  0					;不使用分区
 DD  2880				;重写一次磁盘大小
 DB  0,0,0x29			;意义不明，固定
 DD  0xffffffff			;可能是卷标号码
@@ -27,6 +27,7 @@ DB  "FAT12   "			;磁盘格式名称，必须是8字节，不足补空格
 RESB	18				;先空出18字节
 
 entry:					;初始化寄存器的值
+
 	MOV	AX,0			
 	MOV SS,AX			
 	MOV SP,0x7c00
@@ -45,6 +46,8 @@ putloop:				;依次输出字符程序段
 	INT 0x10			;调用显卡BIOS
 	JMP putloop			;接着循环putloop
 fin:					;终止操作
+		
+
 	HLT					;让CPU停止，等待指令
 	JMP fin				;跳转到fin
 msg:					;定义数据
@@ -55,8 +58,3 @@ msg:					;定义数据
 	
 RESB	0x7dfe-$		; 将512B的空间填满0
 DB		0x55, 0xaa		;最后设置成55aa，表示这是第一个启动模块
-
-DB		0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00		
-RESB	4600		
-DB		0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00		
-RESB	1469432		

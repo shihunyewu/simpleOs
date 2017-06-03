@@ -1,1 +1,0 @@
-..\simpleOsSourceCode\tolset\z_tools\nask.exe sgyos.nas sgyos.img
