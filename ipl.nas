@@ -1,60 +1,75 @@
-; hello-os
+; haribote-ipl
 ; TAB=4
 
-		ORG		0x7c00			; このプログラムがどこに読み込まれるのか
-
-; 以下は標準的なFAT12フォーマットフロッピーディスクのための記述
-
+; ??的?部信息
+		ORG		0x7c00			; 程序地址
 		JMP		entry
 		DB		0x90
-		DB		"HELLOIPL"		; ブートセクタの名前を自由に書いてよい（8バイト）
-		DW		512				; 1セクタの大きさ（512にしなければいけない）
-		DB		1				; クラスタの大きさ（1セクタにしなければいけない）
-		DW		1				; FATがどこから始まるか（普通は1セクタ目からにする）
-		DB		2				; FATの個数（2にしなければいけない）
-		DW		224				; ルートディレクトリ領域の大きさ（普通は224エントリにする）
-		DW		2880			; このドライブの大きさ（2880セクタにしなければいけない）
-		DB		0xf0			; メディアのタイプ（0xf0にしなければいけない）
-		DW		9				; FAT領域の長さ（9セクタにしなければいけない）
-		DW		18				; 1トラックにいくつのセクタがあるか（18にしなければいけない）
-		DW		2				; ヘッドの数（2にしなければいけない）
-		DD		0				; パーティションを使ってないのでここは必ず0
-		DD		2880			; このドライブ大きさをもう一度書く
-		DB		0,0,0x29		; よくわからないけどこの値にしておくといいらしい
-		DD		0xffffffff		; たぶんボリュームシリアル番号
-		DB		"HELLO-OS   "	; ディスクの名前（11バイト）
-		DB		"FAT12   "		; フォーマットの名前（8バイト）
-		RESB	18				; とりあえず18バイトあけておく
+		DB		"HARIBOTE"		; 
+		DW		512				; 
+		DB		1				; 
+		DW		1				; 
+		DB		2				; 
+		DW		224				; 
+		DW		2880			; 
+		DB		0xf0			; 
+		DW		9				; 
+		DW		18				; 
+		DW		2				; 
+		DD		0				; 
+		DD		2880			; 
+		DB		0,0,0x29		; 
+		DD		0xffffffff		; 
+		DB		"HARIBOTEOS "	; 
+		DB		"FAT12   "		; 
+		RESB	18				; 
 
-; プログラム本体
+; 程序主体
 
 entry:
-		MOV		AX,0			; レジスタ初期化
+		MOV		AX,0			; 寄存器初始化
 		MOV		SS,AX
 		MOV		SP,0x7c00
 		MOV		DS,AX
-		MOV		ES,AX
 
+; ?找??的扇区
+
+		MOV		AX,0x0820		;??是0820？
+		MOV		ES,AX
+		MOV		CH,0			; 柱面0
+		MOV		DH,0			; 磁?0
+		MOV		CL,2			; 扇面2
+
+		MOV		AH,0x02			; AH=0x02 : ??
+		MOV		AL,1			; 一个扇区
+		MOV		BX,0
+		MOV		DL,0x00			; 使用A??器
+		INT		0x13			; ?用磁?BIOS
+		JC		error
+
+
+fin:
+		HLT						; CPU停止工作
+		JMP		fin				; 无限循?
+; 下面是出?信息
+		
+error:
 		MOV		SI,msg
 putloop:
 		MOV		AL,[SI]
-		ADD		SI,1			; SIに1を足す
+		ADD		SI,1			; SI下移
 		CMP		AL,0
 		JE		fin
-		MOV		AH,0x0e			; 一文字表示ファンクション
-		MOV		BX,15			; カラーコード
-		INT		0x10			; ビデオBIOS呼び出し
+		MOV		AH,0x0e			; ?示文字
+		MOV		BX,15			; 文字?色
+		INT		0x10			; BIOS中断
 		JMP		putloop
-fin:
-		HLT						; 何かあるまでCPUを停止させる
-		JMP		fin				; 無限ループ
-
 msg:
-		DB		0x0a, 0x0a		; 改行を2つ
-		DB		"hello, world,sgy"
-		DB		0x0a			; 改行
+		DB		0x0a, 0x0a		; ??行
+		DB		"load error"
+		DB		0x0a			; ?行
 		DB		0
 
-		RESB	0x7dfe-$		; 0x7dfeまでを0x00で埋める命令
+		RESB	0x7dfe-$		; 从?在的地址移植到510的位置填0
 
-		DB		0x55, 0xaa
+		DB		0x55, 0xaa		;??区的最后?尾字符
